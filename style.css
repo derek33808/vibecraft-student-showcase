@@ -292,10 +292,10 @@ body {
   background: var(--green);
 }
 
-/* 有溢出时底部渐变提示 */
+/* 有溢出时底部加淡线提示（不遮挡底部按钮） */
 .comment-list.has-scroll {
-  mask-image: linear-gradient(to bottom, black 70%, transparent 98%);
-  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 98%);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
 }
 
 /* 折叠隐藏 */
