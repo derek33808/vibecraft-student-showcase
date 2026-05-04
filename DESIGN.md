@@ -28,7 +28,7 @@
 
 | 学生 | Day 1 个人主页 | Day 2 产品 V1 | 状态 |
 |------|---------------|--------------|------|
-| Corum | https://corum-website.netlify.app/ | 大游戏 | 努力中 |
+| Corum | https://corum-website.netlify.app/ | https://reliable-mochi-d92fa9.netlify.app/ | 已发布 |
 | Isaac | https://shiny-buttercream-a762db.netlify.app/ | https://escape-from-max-game.netlify.app/ | 已发布 |
 | Langer | https://langer-homepage.netlify.app/ | https://langer-f1-game.netlify.app/ | 已发布 |
 | Max | https://max-website-nine.vercel.app/ | https://haunted-village.vercel.app | 已发布 |

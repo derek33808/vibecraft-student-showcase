@@ -12,9 +12,9 @@ const STUDENTS = [
       ready: true
     },
     day2: {
-      label: 'Day 2 · 大游戏',
-      url: null,
-      ready: false
+      label: 'Day 2 · 游戏作品',
+      url: 'https://reliable-mochi-d92fa9.netlify.app/',
+      ready: true
     }
   },
   {
