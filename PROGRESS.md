@@ -13,3 +13,4 @@
 - [x] app.js 点赞投票 + 留言互动逻辑完成
 - [x] Max Day2 作品链接更新（Haunted Village）
 - [x] GitHub 仓库创建并推送：https://github.com/derek33808/vibecraft-student-showcase
+- [x] Netlify 部署上线：https://vibecraft-student-showcase.netlify.app
