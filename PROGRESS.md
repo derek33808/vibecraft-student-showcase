@@ -16,3 +16,4 @@
 - [x] Netlify 部署上线：https://vibecraft-student-showcase.netlify.app
 - [x] v2 接入 Supabase 数据库：投票 + 留言持久化，学生数据保持静态
 - [x] v2.1 添加留言删除功能 + 回复嵌套支持
+- [x] v2.2 留言区支持折叠展开（默认显示3条）+ 滚动条始终可见

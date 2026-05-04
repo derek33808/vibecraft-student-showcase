@@ -5,10 +5,12 @@
 var appData = {
   votes: {},
   voted: {},
-  comments: {}  // { studentId: [ {id, nickname, content, time, parentId, replies:[]}, ... ] }
+  comments: {}  // { studentId: [tree], ... }
 };
 
-// ========== 初始化==================
+var COMMENT_PREVIEW = 3; // 默认显示前3条
+
+// ========== 初始化 ==========
 async function init() {
   var grid = document.getElementById('cardsGrid');
   grid.innerHTML = '<div class="loading">加载中...</div>';
@@ -45,19 +47,15 @@ async function init() {
   }
 }
 
-// ========== 构建评论树（顶层 + 回复嵌套） ==========
+// ========== 构建评论树 ==========
 function buildCommentTree(flatList) {
-  var map = {};       // id → comment object
-  var topLevel = [];  // 顶层评论
-
-  // 第一遍：建立 id 索引
+  var map = {};
+  var topLevel = [];
   for (var i = 0; i < flatList.length; i++) {
     var c = flatList[i];
     c.replies = [];
     map[c.id] = c;
   }
-
-  // 第二遍：挂载回复
   for (var i = 0; i < flatList.length; i++) {
     var c = flatList[i];
     if (c.parentId && map[c.parentId]) {
@@ -66,11 +64,10 @@ function buildCommentTree(flatList) {
       topLevel.push(c);
     }
   }
-
   return topLevel;
 }
 
-// ========== 渲染所有学生卡片 ==========
+// ========== 渲染卡片 ==========
 function renderCards() {
   var grid = document.getElementById('cardsGrid');
   grid.innerHTML = '';
@@ -78,9 +75,10 @@ function renderCards() {
     var card = createCard(student);
     grid.appendChild(card);
   });
+  // 滚动条可见性检测
+  updateScrollIndicators();
 }
 
-// ========== 创建单个学生卡片 ==========
 function createCard(student) {
   var card = document.createElement('div');
   card.className = 'card';
@@ -105,19 +103,15 @@ function createCard(student) {
   return card;
 }
 
-// ========== 创建链接行 ==========
 function createLinkRow(label, linkData) {
   var row = document.createElement('div');
   row.className = 'link-row';
-
   var badge = document.createElement('span');
   badge.className = linkData.ready ? 'link-badge ready' : 'link-badge wip';
   badge.textContent = linkData.ready ? '已发布' : '努力中';
-
   var labelSpan = document.createElement('span');
   labelSpan.className = 'link-label';
   labelSpan.textContent = label;
-
   if (linkData.ready && linkData.url) {
     var a = document.createElement('a');
     a.className = 'link-url';
@@ -136,54 +130,40 @@ function createLinkRow(label, linkData) {
     row.appendChild(labelSpan);
     row.appendChild(span);
   }
-
   return row;
 }
 
-// ========== 创建点赞区 ==========
+// ========== 点赞 ==========
 function createVoteBar(student) {
   var bar = document.createElement('div');
   bar.className = 'vote-bar';
-
   var btn = document.createElement('button');
   btn.className = 'vote-btn';
   btn.id = 'vote-btn-' + student.id;
   btn.innerHTML = '<span class="vote-heart">♥</span> 点赞';
-
   var count = document.createElement('span');
   count.className = 'vote-count';
   count.id = 'vote-count-' + student.id;
-
   var votes = appData.votes[student.id] || 0;
   var hasVoted = appData.voted[student.id];
-
   if (hasVoted) {
     btn.classList.add('voted');
     btn.innerHTML = '<span class="vote-heart">♥</span> 已点赞';
   }
-
   count.innerHTML = '共 <strong>' + votes + '</strong> 票';
-
-  btn.addEventListener('click', function() {
-    handleVote(student.id, btn, count);
-  });
-
+  btn.addEventListener('click', function() { handleVote(student.id, btn, count); });
   bar.appendChild(btn);
   bar.appendChild(count);
   return bar;
 }
 
-// ========== 处理点赞 ==========
 async function handleVote(studentId, btn, countEl) {
   if (appData.voted[studentId]) return;
-
   btn.classList.add('voted');
   btn.innerHTML = '<span class="vote-heart">♥</span> 已点赞';
   btn.style.transform = 'scale(1.15)';
   setTimeout(function() { btn.style.transform = ''; }, 150);
-
   var result = await addVote(studentId);
-
   if (result.success) {
     appData.voted[studentId] = true;
     appData.votes[studentId] = (appData.votes[studentId] || 0) + 1;
@@ -198,32 +178,22 @@ async function handleVote(studentId, btn, countEl) {
   }
 }
 
-// ========== 创建留言区 ==========
+// ========== 留言区（折叠展开） ==========
 function createCommentSection(student) {
   var section = document.createElement('div');
   section.className = 'comments-section';
 
-  // 标题 + 计数
   var title = document.createElement('div');
   title.className = 'comments-title';
   title.id = 'comment-title-' + student.id;
-  updateCommentTitle(student.id, title);
 
-  // 留言列表容器
   var list = document.createElement('div');
   list.className = 'comment-list';
   list.id = 'comment-list-' + student.id;
 
-  // 渲染评论树
-  var tree = appData.comments[student.id] || [];
-  for (var i = 0; i < tree.length; i++) {
-    list.appendChild(createCommentTreeItem(tree[i], student.id, 0));
-  }
+  renderCommentList(list, student.id, title);
 
-  setTimeout(function() { list.scrollTop = list.scrollHeight; }, 0);
-
-  // 新评论表单
-  var form = createCommentForm(student.id, null, list, title);
+  var form = createCommentForm(student.id, null);
 
   section.appendChild(title);
   section.appendChild(list);
@@ -231,26 +201,93 @@ function createCommentSection(student) {
   return section;
 }
 
-// ========== 递归渲染评论树 ==========
+function renderCommentList(list, studentId, titleEl) {
+  var tree = appData.comments[studentId] || [];
+  var total = tree.length;
+
+  // 清除旧内容
+  list.innerHTML = '';
+
+  if (total === 0) {
+    if (titleEl) updateCommentTitle(studentId, titleEl);
+    updateScrollIndicator(list);
+    return;
+  }
+
+  // 渲染全部（折叠由 CSS + hidden class 控制）
+  for (var i = 0; i < total; i++) {
+    var item = createCommentTreeItem(tree[i], studentId, 0);
+    if (i >= COMMENT_PREVIEW) item.classList.add('comment-collapsed');
+    list.appendChild(item);
+  }
+
+  // 折叠按钮
+  if (total > COMMENT_PREVIEW) {
+    var toggleBtn = document.createElement('button');
+    toggleBtn.className = 'comment-toggle-btn';
+    toggleBtn.textContent = '▼ 查看全部 (' + total + '条)';
+    toggleBtn.addEventListener('click', function() {
+      var collapsed = list.querySelectorAll('.comment-collapsed');
+      if (collapsed.length > 0) {
+        // 展开
+        for (var j = 0; j < collapsed.length; j++) collapsed[j].classList.remove('comment-collapsed');
+        toggleBtn.textContent = '▲ 收起';
+        toggleBtn.classList.add('expanded');
+      } else {
+        // 收起
+        var items = list.querySelectorAll('.comment-tree-item');
+        for (var j = COMMENT_PREVIEW; j < items.length; j++) items[j].classList.add('comment-collapsed');
+        toggleBtn.textContent = '▼ 查看全部 (' + total + '条)';
+        toggleBtn.classList.remove('expanded');
+      }
+      updateScrollIndicator(list);
+    });
+    list.appendChild(toggleBtn);
+  }
+
+  if (titleEl) updateCommentTitle(studentId, titleEl);
+  updateScrollIndicator(list);
+}
+
+// ========== 滚动条可见性指示 ==========
+function updateScrollIndicators() {
+  var lists = document.querySelectorAll('.comment-list');
+  for (var i = 0; i < lists.length; i++) {
+    updateScrollIndicator(lists[i]);
+  }
+}
+
+function updateScrollIndicator(list) {
+  if (!list) return;
+  var hasOverflow = list.scrollHeight > list.clientHeight + 2;
+  if (hasOverflow) {
+    list.classList.add('has-scroll');
+  } else {
+    list.classList.remove('has-scroll');
+  }
+  // 隐藏已展开时无意义的折叠项标记
+  var visibleCollapsed = list.querySelectorAll('.comment-collapsed');
+  if (visibleCollapsed.length === 0) {
+    list.classList.remove('has-hidden');
+  } else if (list.querySelectorAll('.comment-tree-item').length > COMMENT_PREVIEW) {
+    list.classList.add('has-hidden');
+  }
+}
+
+// ========== 评论树递归渲染 ==========
 function createCommentTreeItem(comment, studentId, depth) {
   var wrapper = document.createElement('div');
   wrapper.className = 'comment-tree-item';
-
-  // 评论主体
   var item = createCommentItemDom(comment, studentId, depth);
   wrapper.appendChild(item);
-
-  // 回复列表（缩进）
   if (comment.replies && comment.replies.length > 0) {
     for (var i = 0; i < comment.replies.length; i++) {
       wrapper.appendChild(createCommentTreeItem(comment.replies[i], studentId, depth + 1));
     }
   }
-
   return wrapper;
 }
 
-// ========== 创建单条评论 DOM ==========
 function createCommentItemDom(comment, studentId, depth) {
   var div = document.createElement('div');
   div.className = 'comment-item';
@@ -259,8 +296,7 @@ function createCommentItemDom(comment, studentId, depth) {
 
   var date = new Date(comment.time);
   var timeStr = date.toLocaleString('zh-CN', {
-    month: 'numeric', day: 'numeric',
-    hour: '2-digit', minute: '2-digit'
+    month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
   });
 
   div.innerHTML =
@@ -268,60 +304,39 @@ function createCommentItemDom(comment, studentId, depth) {
     '<span class="comment-text">' + escapeHtml(comment.content) + '</span>' +
     '<span class="comment-time">' + timeStr + '</span>';
 
-  // 操作按钮区
   var actions = document.createElement('div');
   actions.className = 'comment-actions';
 
-  // 回复按钮
   var replyBtn = document.createElement('button');
   replyBtn.className = 'comment-action-btn';
   replyBtn.textContent = '回复';
-  replyBtn.addEventListener('click', function() {
-    toggleReplyForm(comment.id, studentId, div);
-  });
+  replyBtn.addEventListener('click', function() { toggleReplyForm(comment.id, studentId, div); });
   actions.appendChild(replyBtn);
 
-  // 删除按钮
   var delBtn = document.createElement('button');
   delBtn.className = 'comment-action-btn comment-del-btn';
   delBtn.textContent = '删除';
-  delBtn.addEventListener('click', function() {
-    handleDeleteComment(comment.id, studentId);
-  });
+  delBtn.addEventListener('click', function() { handleDeleteComment(comment.id, studentId); });
   actions.appendChild(delBtn);
 
   div.appendChild(actions);
-
   return div;
 }
 
-// ========== 切换回复表单显示 ==========
+// ========== 回复表单 ==========
 function toggleReplyForm(commentId, studentId, commentEl) {
-  // 移除已有的回复表单
   var existing = commentEl.querySelector('.reply-form-inline');
-  if (existing) {
-    existing.remove();
-    return;
-  }
-
-  // 移除其他回复表单
+  if (existing) { existing.remove(); return; }
   var allForms = document.querySelectorAll('.reply-form-inline');
-  for (var i = 0; i < allForms.length; i++) {
-    allForms[i].remove();
-  }
-
-  // 创建内联回复表单
-  var form = createCommentForm(studentId, commentId, null, null);
+  for (var i = 0; i < allForms.length; i++) allForms[i].remove();
+  var form = createCommentForm(studentId, commentId);
   form.classList.add('reply-form-inline');
   commentEl.appendChild(form);
-
-  // 聚焦到内容输入框
   var inputs = form.querySelectorAll('.comment-input');
   if (inputs.length >= 2) inputs[1].focus();
 }
 
-// ========== 创建评论表单 ==========
-function createCommentForm(studentId, parentId, listEl, titleEl) {
+function createCommentForm(studentId, parentId) {
   var form = document.createElement('div');
   form.className = 'comment-form';
 
@@ -342,20 +357,14 @@ function createCommentForm(studentId, parentId, listEl, titleEl) {
   var doSubmit = async function() {
     var nickname = nicknameInput.value.trim();
     var content = contentInput.value.trim();
-
     if (!nickname) { nicknameInput.focus(); return; }
     if (!content) { contentInput.focus(); return; }
-
     submitBtn.disabled = true;
     submitBtn.textContent = '发送中...';
-
     var comment = await addComment(studentId, nickname, content, parentId);
-
     submitBtn.disabled = false;
     submitBtn.textContent = '发送';
-
     if (comment) {
-      // 刷新该学生的评论数据
       var freshComments = await fetchComments(studentId);
       appData.comments[studentId] = buildCommentTree(freshComments);
       refreshCommentSection(studentId);
@@ -365,12 +374,8 @@ function createCommentForm(studentId, parentId, listEl, titleEl) {
   };
 
   submitBtn.addEventListener('click', doSubmit);
-  contentInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') doSubmit();
-  });
-  nicknameInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') contentInput.focus();
-  });
+  contentInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') doSubmit(); });
+  nicknameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') contentInput.focus(); });
 
   form.appendChild(nicknameInput);
   form.appendChild(contentInput);
@@ -378,37 +383,28 @@ function createCommentForm(studentId, parentId, listEl, titleEl) {
   return form;
 }
 
-// ========== 删除评论 ==========
+// ========== 删除 ==========
 async function handleDeleteComment(commentId, studentId) {
-  if (!confirm('确定要删除这条留言吗？')) return;
-
+  if (!confirm('确定要删除吗？')) return;
   var ok = await deleteComment(commentId);
   if (ok) {
-    // 从内存中移除（含子回复由数据库 CASCADE 处理）
     var freshComments = await fetchComments(studentId);
     appData.comments[studentId] = buildCommentTree(freshComments);
     refreshCommentSection(studentId);
   } else {
-    alert('删除失败，请重试');
+    alert('删除失败');
   }
 }
 
-// ========== 刷新留言区 DOM ==========
+// ========== 刷新留言区 ==========
 function refreshCommentSection(studentId) {
   var list = document.getElementById('comment-list-' + studentId);
   var title = document.getElementById('comment-title-' + studentId);
   if (!list) return;
-
-  list.innerHTML = '';
-  var tree = appData.comments[studentId] || [];
-  for (var i = 0; i < tree.length; i++) {
-    list.appendChild(createCommentTreeItem(tree[i], studentId, 0));
-  }
+  renderCommentList(list, studentId, title);
   list.scrollTop = list.scrollHeight;
-  if (title) updateCommentTitle(studentId, title);
 }
 
-// ========== 更新留言计数 ==========
 function updateCommentTitle(studentId, titleEl) {
   var count = countAllComments(appData.comments[studentId] || []);
   titleEl.textContent = '💬 留言 (' + count + ')';
@@ -422,12 +418,10 @@ function countAllComments(tree) {
   return n;
 }
 
-// ========== HTML 转义 ==========
 function escapeHtml(str) {
   var div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
 
-// ========== 启动 ==========
 document.addEventListener('DOMContentLoaded', init);

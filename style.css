@@ -269,9 +269,38 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 160px;
+  max-height: 420px;
   overflow-y: auto;
   margin-bottom: 10px;
+  /* 始终可见滚动条 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Webkit 滚动条始终可见 */
+.comment-list::-webkit-scrollbar {
+  width: 6px;
+}
+.comment-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.comment-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+.comment-list::-webkit-scrollbar-thumb:hover {
+  background: var(--green);
+}
+
+/* 有溢出时底部渐变提示 */
+.comment-list.has-scroll {
+  mask-image: linear-gradient(to bottom, black 70%, transparent 98%);
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 98%);
+}
+
+/* 折叠隐藏 */
+.comment-collapsed {
+  display: none !important;
 }
 
 .comment-item {
@@ -340,6 +369,31 @@ body {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px dashed var(--border);
+}
+
+
+/* ---------- 折叠展开按钮 ---------- */
+.comment-toggle-btn {
+  width: 100%;
+  padding: 6px 0;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.comment-toggle-btn:hover {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.comment-toggle-btn.expanded {
+  color: var(--text-dim);
+  border-color: var(--border);
+  border-style: solid;
 }
 
 .comment-form {
