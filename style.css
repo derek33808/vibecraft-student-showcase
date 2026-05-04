@@ -134,7 +134,7 @@ body {
 
 .card-avatar {
   width: 48px;
-  height: 64px;
+  height: 48px;
   border-radius: 8px;
   background: var(--green);
   display: flex;
