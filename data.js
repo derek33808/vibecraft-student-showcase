@@ -12,7 +12,7 @@ const STUDENTS = [
       ready: true
     },
     day2: {
-      label: 'Day 2 · 游戏作品',
+      label: 'Day 2 · Strike Zone',
       url: 'https://reliable-mochi-d92fa9.netlify.app/',
       ready: true
     }
