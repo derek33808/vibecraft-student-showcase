@@ -68,7 +68,7 @@ async function fetchComments(studentId) {
     .from('showcase_comments')
     .select('*')
     .eq('student_id', studentId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('fetchComments error:', error);

@@ -402,7 +402,7 @@ function refreshCommentSection(studentId) {
   var title = document.getElementById('comment-title-' + studentId);
   if (!list) return;
   renderCommentList(list, studentId, title);
-  list.scrollTop = list.scrollHeight;
+  list.scrollTop = 0;
 }
 
 function updateCommentTitle(studentId, titleEl) {
