@@ -1,5 +1,5 @@
 // ============================================================
-// student-showcase · 学生作品数据配置
+// student-showcase · 学生作品数据配置（静态）
 // ============================================================
 
 const STUDENTS = [
@@ -60,44 +60,3 @@ const STUDENTS = [
     }
   }
 ];
-
-// ============================================================
-// localStorage 数据读写
-// ============================================================
-
-const STORAGE_KEY = 'vibecraft_showcase';
-
-function loadData() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (raw) {
-    try {
-      return JSON.parse(raw);
-    } catch (e) {
-      console.warn('数据读取失败，重置为空');
-    }
-  }
-  return {
-    votes: { corum: 0, isaac: 0, langer: 0, max: 0 },
-    voted: { corum: false, isaac: false, langer: false, max: false },
-    comments: { corum: [], isaac: [], langer: [], max: [] }
-  };
-}
-
-function saveData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-// 初始化（确保即使数据不完整也有默认结构）
-function initData() {
-  const data = loadData();
-  const defaults = { corum: 0, isaac: 0, langer: 0, max: 0 };
-  data.votes = { ...defaults, ...data.votes };
-  data.voted = { corum: false, isaac: false, langer: false, max: false, ...data.voted };
-  data.comments = {
-    corum: data.comments?.corum || [],
-    isaac: data.comments?.isaac || [],
-    langer: data.comments?.langer || [],
-    max: data.comments?.max || []
-  };
-  return data;
-}

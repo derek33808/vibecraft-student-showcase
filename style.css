@@ -354,6 +354,20 @@ body {
   color: var(--text-dim);
 }
 
+
+/* ---------- Loading ---------- */
+.loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 24px;
+  font-size: 1rem;
+  color: var(--text-dim);
+}
+
+.loading.error {
+  color: #EF4444;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 700px) {
   .cards-grid {

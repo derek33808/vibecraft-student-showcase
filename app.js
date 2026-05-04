@@ -1,48 +1,90 @@
 // ============================================================
-// student-showcase · 交互逻辑
+// student-showcase · 交互逻辑（v2 Supabase）
 // ============================================================
 
-let appData;
+var appData = {
+  votes: {},
+  voted: {},
+  comments: {}
+};
 
-// ========== 初始化 ==========
-function init() {
-  appData = initData();
-  renderCards();
+// ========== 初始化（异步加载 Supabase 数据） ==========
+async function init() {
+  // 显示加载状态
+  var grid = document.getElementById('cardsGrid');
+  grid.innerHTML = '<div class="loading">加载中...</div>';
+
+  try {
+    // 并行加载投票数和已投票状态
+    var countsPromise = fetchVoteCounts();
+    var votedIdsPromise = fetchVotedStudentIds();
+
+    var counts = await countsPromise;
+    var votedIds = await votedIdsPromise;
+
+    // 转换为 appData 格式
+    appData.votes = { corum: 0, isaac: 0, langer: 0, max: 0 };
+    for (var key in counts) {
+      if (counts.hasOwnProperty(key)) {
+        appData.votes[key] = counts[key];
+      }
+    }
+
+    appData.voted = { corum: false, isaac: false, langer: false, max: false };
+    for (var i = 0; i < votedIds.length; i++) {
+      appData.voted[votedIds[i]] = true;
+    }
+
+    // 加载每位学生的留言
+    appData.comments = { corum: [], isaac: [], langer: [], max: [] };
+    var commentPromises = STUDENTS.map(function(s) {
+      return fetchComments(s.id).then(function(comments) {
+        appData.comments[s.id] = comments;
+      });
+    });
+    await Promise.all(commentPromises);
+
+    // 渲染卡片
+    renderCards();
+  } catch (err) {
+    console.error('数据加载失败:', err);
+    grid.innerHTML = '<div class="loading error">数据加载失败，请刷新重试</div>';
+  }
 }
 
 // ========== 渲染所有学生卡片 ==========
 function renderCards() {
-  const grid = document.getElementById('cardsGrid');
+  var grid = document.getElementById('cardsGrid');
   grid.innerHTML = '';
 
-  STUDENTS.forEach((student) => {
-    const card = createCard(student);
+  STUDENTS.forEach(function(student) {
+    var card = createCard(student);
     grid.appendChild(card);
   });
 }
 
 // ========== 创建单个学生卡片 ==========
 function createCard(student) {
-  const card = document.createElement('div');
+  var card = document.createElement('div');
   card.className = 'card';
 
   // --- 头像 + 姓名 ---
-  const header = document.createElement('div');
+  var header = document.createElement('div');
   header.className = 'card-header';
   header.innerHTML = '<div class="card-avatar">' + student.name[0] + '</div>' +
     '<span class="card-name">' + student.name + '</span>';
 
   // --- Day1 / Day2 链接 ---
-  const links = document.createElement('div');
+  var links = document.createElement('div');
   links.className = 'links';
   links.appendChild(createLinkRow('Day 1', student.day1));
   links.appendChild(createLinkRow('Day 2', student.day2));
 
   // --- 点赞区 ---
-  const voteBar = createVoteBar(student);
+  var voteBar = createVoteBar(student);
 
   // --- 留言区 ---
-  const commentSection = createCommentSection(student);
+  var commentSection = createCommentSection(student);
 
   card.appendChild(header);
   card.appendChild(links);
@@ -53,19 +95,19 @@ function createCard(student) {
 
 // ========== 创建链接行 ==========
 function createLinkRow(label, linkData) {
-  const row = document.createElement('div');
+  var row = document.createElement('div');
   row.className = 'link-row';
 
-  const badge = document.createElement('span');
+  var badge = document.createElement('span');
   badge.className = linkData.ready ? 'link-badge ready' : 'link-badge wip';
   badge.textContent = linkData.ready ? '✓ 已发布' : '🚧 努力中';
 
-  const labelSpan = document.createElement('span');
+  var labelSpan = document.createElement('span');
   labelSpan.className = 'link-label';
   labelSpan.textContent = label;
 
   if (linkData.ready && linkData.url) {
-    const a = document.createElement('a');
+    var a = document.createElement('a');
     a.className = 'link-url';
     a.href = linkData.url;
     a.target = '_blank';
@@ -75,7 +117,7 @@ function createLinkRow(label, linkData) {
     row.appendChild(labelSpan);
     row.appendChild(a);
   } else {
-    const span = document.createElement('span');
+    var span = document.createElement('span');
     span.className = 'link-url disabled';
     span.textContent = linkData.label;
     row.appendChild(badge);
@@ -88,24 +130,24 @@ function createLinkRow(label, linkData) {
 
 // ========== 创建点赞区 ==========
 function createVoteBar(student) {
-  const bar = document.createElement('div');
+  var bar = document.createElement('div');
   bar.className = 'vote-bar';
 
-  const btn = document.createElement('button');
+  var btn = document.createElement('button');
   btn.className = 'vote-btn';
   btn.id = 'vote-btn-' + student.id;
-  btn.innerHTML = '♥ 点赞';
+  btn.innerHTML = '<span class="vote-heart">♥</span> 点赞';
 
-  const count = document.createElement('span');
+  var count = document.createElement('span');
   count.className = 'vote-count';
   count.id = 'vote-count-' + student.id;
 
-  const votes = appData.votes[student.id] || 0;
-  const hasVoted = appData.voted[student.id];
+  var votes = appData.votes[student.id] || 0;
+  var hasVoted = appData.voted[student.id];
 
   if (hasVoted) {
     btn.classList.add('voted');
-    btn.innerHTML = '♥ 已点赞';
+    btn.innerHTML = '<span class="vote-heart">♥</span> 已点赞';
   }
 
   count.innerHTML = '共 <strong>' + votes + '</strong> 票';
@@ -119,35 +161,48 @@ function createVoteBar(student) {
   return bar;
 }
 
-// ========== 处理点赞 ==========
-function handleVote(studentId, btn, countEl) {
+// ========== 处理点赞（异步） ==========
+async function handleVote(studentId, btn, countEl) {
   if (appData.voted[studentId]) {
     return;
   }
 
-  appData.voted[studentId] = true;
-  appData.votes[studentId] = (appData.votes[studentId] || 0) + 1;
-  saveData(appData);
-
+  // 乐观更新 UI
   btn.classList.add('voted');
-  btn.innerHTML = '♥ 已点赞';
-  countEl.innerHTML = '共 <strong>' + appData.votes[studentId] + '</strong> 票';
-
+  btn.innerHTML = '<span class="vote-heart">♥</span> 已点赞';
   btn.style.transform = 'scale(1.15)';
   setTimeout(function() { btn.style.transform = ''; }, 150);
+
+  var result = await addVote(studentId);
+
+  if (result.success) {
+    appData.voted[studentId] = true;
+    appData.votes[studentId] = (appData.votes[studentId] || 0) + 1;
+    countEl.innerHTML = '共 <strong>' + appData.votes[studentId] + '</strong> 票';
+  } else if (result.duplicate) {
+    // 已经投过，保持 UI 状态（从数据库刷新最新票数）
+    var counts = await fetchVoteCounts();
+    appData.votes[studentId] = counts[studentId] || appData.votes[studentId] || 0;
+    countEl.innerHTML = '共 <strong>' + appData.votes[studentId] + '</strong> 票';
+  } else {
+    // 失败，回滚 UI
+    btn.classList.remove('voted');
+    btn.innerHTML = '<span class="vote-heart">♥</span> 点赞';
+  }
 }
 
 // ========== 创建留言区 ==========
 function createCommentSection(student) {
-  const section = document.createElement('div');
+  var section = document.createElement('div');
   section.className = 'comments-section';
 
-  const title = document.createElement('div');
+  var title = document.createElement('div');
   title.className = 'comments-title';
-  const commentCount = (appData.comments[student.id] || []).length;
+  var commentCount = (appData.comments[student.id] || []).length;
   title.textContent = '💬 留言 (' + commentCount + ')';
+  title.id = 'comment-title-' + student.id;
 
-  const list = document.createElement('div');
+  var list = document.createElement('div');
   list.className = 'comment-list';
   list.id = 'comment-list-' + student.id;
 
@@ -159,26 +214,27 @@ function createCommentSection(student) {
     setTimeout(function() { list.scrollTop = list.scrollHeight; }, 0);
   }
 
-  const form = document.createElement('div');
+  // 留言表单
+  var form = document.createElement('div');
   form.className = 'comment-form';
 
-  const nicknameInput = document.createElement('input');
+  var nicknameInput = document.createElement('input');
   nicknameInput.className = 'comment-input';
   nicknameInput.placeholder = '你的昵称';
   nicknameInput.maxLength = 20;
 
-  const contentInput = document.createElement('input');
+  var contentInput = document.createElement('input');
   contentInput.className = 'comment-input';
   contentInput.placeholder = '写句鼓励的话...';
   contentInput.maxLength = 200;
 
-  const submitBtn = document.createElement('button');
+  var submitBtn = document.createElement('button');
   submitBtn.className = 'comment-submit';
   submitBtn.textContent = '发送';
 
-  var doSubmit = function() {
-    const nickname = nicknameInput.value.trim();
-    const content = contentInput.value.trim();
+  var doSubmit = async function() {
+    var nickname = nicknameInput.value.trim();
+    var content = contentInput.value.trim();
 
     if (!nickname) {
       nicknameInput.focus();
@@ -189,24 +245,34 @@ function createCommentSection(student) {
       return;
     }
 
-    const comment = {
-      nickname: nickname,
-      content: content,
-      time: Date.now()
-    };
+    // 禁用按钮防重复
+    submitBtn.disabled = true;
+    submitBtn.textContent = '发送中...';
 
-    if (!appData.comments[student.id]) {
-      appData.comments[student.id] = [];
+    var comment = await addComment(student.id, nickname, content);
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = '发送';
+
+    if (comment) {
+      if (!appData.comments[student.id]) {
+        appData.comments[student.id] = [];
+      }
+      appData.comments[student.id].push(comment);
+
+      list.appendChild(createCommentItem(comment));
+      list.scrollTop = list.scrollHeight;
+
+      var titleEl = document.getElementById('comment-title-' + student.id);
+      if (titleEl) {
+        titleEl.textContent = '💬 留言 (' + appData.comments[student.id].length + ')';
+      }
+
+      nicknameInput.value = '';
+      contentInput.value = '';
+    } else {
+      alert('留言发送失败，请重试');
     }
-    appData.comments[student.id].push(comment);
-    saveData(appData);
-
-    list.appendChild(createCommentItem(comment));
-    list.scrollTop = list.scrollHeight;
-    title.textContent = '💬 留言 (' + appData.comments[student.id].length + ')';
-
-    nicknameInput.value = '';
-    contentInput.value = '';
   };
 
   submitBtn.addEventListener('click', doSubmit);
@@ -229,11 +295,11 @@ function createCommentSection(student) {
 
 // ========== 创建单条留言 DOM ==========
 function createCommentItem(comment) {
-  const div = document.createElement('div');
+  var div = document.createElement('div');
   div.className = 'comment-item';
 
-  const date = new Date(comment.time);
-  const timeStr = date.toLocaleString('zh-CN', {
+  var date = new Date(comment.time);
+  var timeStr = date.toLocaleString('zh-CN', {
     month: 'numeric',
     day: 'numeric',
     hour: '2-digit',
@@ -249,7 +315,7 @@ function createCommentItem(comment) {
 
 // ========== HTML 转义（防 XSS） ==========
 function escapeHtml(str) {
-  const div = document.createElement('div');
+  var div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
