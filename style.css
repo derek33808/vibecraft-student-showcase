@@ -1,0 +1,370 @@
+/* ============================================================
+   student-showcase · VibeCraft 品牌像素风样式
+   ============================================================ */
+
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --green: #00D97E;
+  --green-dark: #00a860;
+  --blue: #3B82F6;
+  --yellow: #FBBF24;
+  --bg: #1A1A2E;
+  --bg-card: #16213E;
+  --bg-input: #0F3460;
+  --text: #E2E8F0;
+  --text-dim: #94A3B8;
+  --border: #334155;
+  --radius: 4px;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Navbar ---------- */
+.navbar {
+  background: rgba(15, 15, 26, 0.95);
+  border-bottom: 2px solid var(--green);
+  padding: 0 24px;
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 60px;
+}
+
+.nav-logo {
+  height: 36px;
+  width: auto;
+}
+
+.nav-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.5px;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  text-align: center;
+  padding: 56px 24px 36px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.hero-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--green);
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 30px rgba(0, 217, 126, 0.3);
+}
+
+.hero-subtitle {
+  font-size: 1.05rem;
+  color: var(--yellow);
+  line-height: 1.8;
+  margin-bottom: 10px;
+}
+
+.hero-desc {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+
+/* ---------- Cards Grid ---------- */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto 60px;
+  padding: 0 24px;
+}
+
+/* ---------- Student Card ---------- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 20px rgba(0, 217, 126, 0.1);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--bg);
+  flex-shrink: 0;
+}
+
+.card-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ---------- Links ---------- */
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.link-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.link-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.link-badge.ready {
+  background: rgba(0, 217, 126, 0.15);
+  color: var(--green);
+}
+
+.link-badge.wip {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--yellow);
+}
+
+.link-label {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.link-url {
+  font-size: 0.85rem;
+  color: var(--blue);
+  text-decoration: none;
+  word-break: break-all;
+  transition: color 0.2s;
+}
+
+.link-url:hover {
+  color: #60A5FA;
+  text-decoration: underline;
+}
+
+.link-url.disabled {
+  color: var(--text-dim);
+  pointer-events: none;
+  text-decoration: none;
+}
+
+/* ---------- Vote ---------- */
+.vote-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 2px solid var(--green);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--green);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.vote-btn:hover:not(.voted) {
+  background: rgba(0, 217, 126, 0.1);
+  transform: scale(1.03);
+}
+
+.vote-btn.voted {
+  background: var(--green);
+  color: var(--bg);
+  cursor: default;
+}
+
+.vote-count {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.vote-count strong {
+  color: var(--green);
+  font-size: 1.05rem;
+}
+
+/* ---------- Comments ---------- */
+.comments-section {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.comments-title {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 160px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.comment-item {
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+}
+
+.comment-nickname {
+  font-weight: 700;
+  color: var(--yellow);
+  margin-right: 6px;
+}
+
+.comment-text {
+  color: var(--text);
+  word-break: break-word;
+}
+
+.comment-time {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.comment-form {
+  display: flex;
+  gap: 8px;
+}
+
+.comment-input {
+  flex: 1;
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.comment-input:focus {
+  border-color: var(--green);
+}
+
+.comment-input::placeholder {
+  color: var(--text-dim);
+}
+
+.comment-submit {
+  padding: 7px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.comment-submit:hover {
+  background: #2563EB;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  text-align: center;
+  padding: 28px 24px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.footer p {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 700px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-title {
+    font-size: 1.8rem;
+  }
+
+  .nav-title {
+    font-size: 0.9rem;
+  }
+}
