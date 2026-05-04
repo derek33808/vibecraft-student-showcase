@@ -54,11 +54,11 @@ body {
   display: flex;
   align-items: center;
   gap: 14px;
-  height: 60px;
+  height: 72px;
 }
 
 .nav-logo {
-  height: 48px;
+  height: 64px;
   width: auto;
 }
 
@@ -134,7 +134,7 @@ body {
 
 .card-avatar {
   width: 48px;
-  height: 48px;
+  height: 64px;
   border-radius: 8px;
   background: var(--green);
   display: flex;
