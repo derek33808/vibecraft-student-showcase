@@ -350,6 +350,14 @@ body {
 }
 
 .footer p {
+
+.footer-qr {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+}
   font-size: 0.82rem;
   color: var(--text-dim);
 }
