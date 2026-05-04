@@ -374,9 +374,12 @@ body {
 
 /* ---------- 折叠展开按钮 ---------- */
 .comment-toggle-btn {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   width: 100%;
   padding: 6px 0;
-  background: transparent;
+  background: var(--bg-card);
   border: 1px dashed var(--border);
   border-radius: 4px;
   color: var(--text-dim);
