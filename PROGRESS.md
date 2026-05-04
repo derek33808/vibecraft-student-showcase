@@ -12,3 +12,4 @@
 - [x] style.css 品牌像素风样式完成
 - [x] app.js 点赞投票 + 留言互动逻辑完成
 - [x] Max Day2 作品链接更新（Haunted Village）
+- [x] GitHub 仓库创建并推送：https://github.com/derek33808/vibecraft-student-showcase
