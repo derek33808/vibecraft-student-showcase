@@ -4,7 +4,6 @@
 
 // ========== 投票 API ==========
 
-// 获取所有学生的投票数
 async function fetchVoteCounts() {
   const { data, error } = await sb
     .from('showcase_votes')
@@ -15,7 +14,7 @@ async function fetchVoteCounts() {
     return {};
   }
 
-  const counts = {};
+  var counts = {};
   for (var i = 0; i < data.length; i++) {
     var sid = data[i].student_id;
     counts[sid] = (counts[sid] || 0) + 1;
@@ -23,7 +22,6 @@ async function fetchVoteCounts() {
   return counts;
 }
 
-// 获取当前浏览器已投票的学生ID列表
 async function fetchVotedStudentIds() {
   var fp = getFingerprint();
   const { data, error } = await sb
@@ -43,7 +41,6 @@ async function fetchVotedStudentIds() {
   return ids;
 }
 
-// 添加投票
 async function addVote(studentId) {
   var fp = getFingerprint();
   const { error } = await sb
@@ -66,7 +63,6 @@ async function addVote(studentId) {
 
 // ========== 留言 API ==========
 
-// 获取某位学生的留言列表
 async function fetchComments(studentId) {
   const { data, error } = await sb
     .from('showcase_comments')
@@ -81,22 +77,28 @@ async function fetchComments(studentId) {
 
   return data.map(function(row) {
     return {
+      id: row.id,
       nickname: row.author,
       content: row.content,
-      time: new Date(row.created_at).getTime()
+      time: new Date(row.created_at).getTime(),
+      parentId: row.parent_id || null
     };
   });
 }
 
-// 添加留言
-async function addComment(studentId, author, content) {
+async function addComment(studentId, author, content, parentId) {
+  var insertData = {
+    student_id: studentId,
+    author: author.trim(),
+    content: content.trim()
+  };
+  if (parentId) {
+    insertData.parent_id = parentId;
+  }
+
   const { data, error } = await sb
     .from('showcase_comments')
-    .insert({
-      student_id: studentId,
-      author: author.trim(),
-      content: content.trim()
-    })
+    .insert(insertData)
     .select()
     .single();
 
@@ -106,8 +108,23 @@ async function addComment(studentId, author, content) {
   }
 
   return {
+    id: data.id,
     nickname: data.author,
     content: data.content,
-    time: new Date(data.created_at).getTime()
+    time: new Date(data.created_at).getTime(),
+    parentId: data.parent_id || null
   };
+}
+
+async function deleteComment(commentId) {
+  const { error } = await sb
+    .from('showcase_comments')
+    .delete()
+    .eq('id', commentId);
+
+  if (error) {
+    console.error('deleteComment error:', error);
+    return false;
+  }
+  return true;
 }

@@ -299,6 +299,49 @@ body {
   margin-top: 2px;
 }
 
+
+/* ---------- Comment Reply ---------- */
+.comment-reply {
+  margin-left: 24px;
+  border-left: 2px solid var(--green);
+  padding-left: 12px;
+}
+
+/* ---------- Comment Actions ---------- */
+.comment-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.comment-action-btn {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.comment-action-btn:hover {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.comment-del-btn:hover {
+  color: #EF4444;
+  border-color: #EF4444;
+}
+
+/* ---------- Reply Form Inline ---------- */
+.reply-form-inline {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+
 .comment-form {
   display: flex;
   gap: 8px;
