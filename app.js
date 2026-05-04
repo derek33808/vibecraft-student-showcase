@@ -221,7 +221,7 @@ function renderCommentList(list, studentId, titleEl) {
     list.appendChild(item);
   }
 
-  // 折叠按钮
+  // 折叠按钮（放在列表顶部）
   if (total > COMMENT_PREVIEW) {
     var toggleBtn = document.createElement('button');
     toggleBtn.className = 'comment-toggle-btn';
@@ -242,7 +242,7 @@ function renderCommentList(list, studentId, titleEl) {
       }
       updateScrollIndicator(list);
     });
-    list.appendChild(toggleBtn);
+    list.insertBefore(toggleBtn, list.firstChild);
   }
 
   if (titleEl) updateCommentTitle(studentId, titleEl);
