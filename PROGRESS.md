@@ -21,3 +21,8 @@
 - [x] 留言排序改为最新在前（DESC）
 - [x] 折叠/展开按钮移到留言区顶部
 - [x] 代码结构整理：src/js/ src/css/ src/lib/ 分层
+- [x] Logo 放大至 64px，导航栏加高
+- [x] Corum Day2 更名为 Strike Zone
+- [x] 折叠按钮 sticky 吸顶不随滚动
+- [x] 修复头像误改回正方形 48x48
+- [x] VibeCraft 发布平台改造计划已保存（待执行）
